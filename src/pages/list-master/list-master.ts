@@ -74,7 +74,7 @@ export class ListMasterPage {
 //  googleVision(){
 //  const data=
 //  {
-//  "requests":[
+//  "requests":[h
 //    {
 //      "image":{
 //        "content":baseImage
@@ -117,6 +117,85 @@ export class ListMasterPage {
 //  
 //  
 //  }
+
+
+
+
+  this.srcImage = '../../assets/imgs/demo.png'
+    Camera.getPicture({
+      quality: 100,
+      destinationType: 0, // DATA_URL
+      sourceType: 1,
+      allowEdit: true,
+      saveToPhotoAlbum: false,
+      correctOrientation: true,
+      encodingType: Camera.EncodingType.PNG,
+      mediaType: Camera.MediaType.PICTURE
+    }).then((imageData) => {
+      /*console.log(imageData);
+      this.srcImage = `data:image/png;base64,${imageData}`;
+      setTimeout(() => {
+        (<any>window).OCRAD(document.getElementById('image'), text => {
+          alert(text);
+        });
+      }, 1000);*/
+      let loading = this.loading.create({
+        content: 'Please wait...'
+      });
+    
+      loading.present();
+  
+      const body = {
+        "requests": [
+          {
+            "image": {
+              "content": imageData
+            },
+            "features": [
+              {
+                "type": "TEXT_DETECTION"
+              }
+            ]
+          }
+        ]
+      }
+      this.http.post("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDAi4IYxh4mSTyCJhkg5Opz7ZW2OBLyovI",body)
+      .subscribe(data=>{
+        console.log(data.json().response);
+        this.str=data.json().responses["0"].fullTextAnnotation.text.replace(/\r?\n|\r/g,"");
+        loading.dismiss();
+        let alert = this.alertCtrl.create({
+          title: 'Scanned Data',
+          message: 'Please confirm scanned data',
+          inputs: [
+            {
+              name: 'title',
+              placeholder: 'Title',
+              value:data.json().responses["0"].fullTextAnnotation.text.replace(/\r?\n|\r/g,"")
+            },
+          ],
+          buttons: [
+            {
+              text: 'Cancel',
+              handler: () => {
+                console.log('Cancel clicked');
+              }
+            },
+            {
+              text: 'Save',
+              handler: (value) => {
+                console.log('Saved clicked'+value.title);
+              }
+            }
+          ]
+        });
+        
+        alert.present();
+        this.onInput();
+      });
+    }, (err) => {
+      console.log(`ERROR -> ${JSON.stringify(err)}`);
+    });
 
   /**
    * Delete an item from the list of items.
